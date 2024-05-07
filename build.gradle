@@ -1,17 +1,19 @@
-apply plugin: "java"
+plugins {
+    id 'org.springframework.boot' version '2.6.4' 
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE' 
+    id 'java'
+}
 
-version '1.0'
+group = 'neko.testing'
+version = 'beta-1.0.0-spring-update'
 
-sourceCompatibility = JavaVersion.VERSION_17
+java {
+	sourceCompatibility = '17'
+}
 
-sourceSets.main.java.srcDirs = ["src"]
-
-compileJava.options.encoding = "UTF-8"
-compileTestJava.options.encoding = "UTF-8"
-
-repositories{
-    mavenCentral()
-    maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
+repositories {
+	mavenCentral()
+	maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
     maven{ url 'https://www.jitpack.io' }
 }
 
@@ -21,20 +23,29 @@ ext{
     jabelVersion = "93fde537c7"
 }
 
-dependencies{
-    compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
+dependencies {
+	compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
-    implementation 'org.mongodb:mongodb-driver-sync:4.4.2'
-    implementation 'org.modelmapper:modelmapper:2.4.3'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-jar{
-    from{
-        configurations.runtimeClasspath.collect{it.isDirectory() ? it : zipTree(it)}
-    }
+tasks.named('bootBuildImage') {
+	builder = 'paketobuildpacks/builder-jammy-base:latest'
+}
 
-    from(rootDir){
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.named('jar') {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from(configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) })
+
+    from(rootDir) {
         include "plugin.json"
     }
 }
+
